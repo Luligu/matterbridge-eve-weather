@@ -1,3 +1,3 @@
 # Matterbridge plugin
 
-Matterbridge eve energy with history.
+Matterbridge eve weather with history.
