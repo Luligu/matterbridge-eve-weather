@@ -42,7 +42,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     weather.getClusterServerById(EveHistory.Cluster.id)?.setElevationAttribute(250); // Elevation in mt
     weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
     weather.getClusterServerById(EveHistory.Cluster.id)?.setTemperatureDisplayUnitsAttribute(TemperatureDisplayUnits.CELSIUS);
-    weather.getClusterServerById(EveHistory.Cluster.id)?.setLastPressureAttribute(950);
+    weather.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(950);
 
     let minTemperature = 0;
     let maxTemperature = 0;
