@@ -1,4 +1,4 @@
-import { DeviceTypes, EveHistory, PressureMeasurement, RelativeHumidityMeasurement, TemperatureDisplayUnits, TemperatureMeasurement, WeatherTrend, logEndpoint } from 'matterbridge';
+import { DeviceTypes, EveHistory, PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureDisplayUnits, TemperatureMeasurement, WeatherTrend, logEndpoint } from 'matterbridge';
 
 import { Matterbridge, MatterbridgeDevice, MatterbridgeAccessoryPlatform, MatterHistory } from 'matterbridge';
 import { AnsiLogger } from 'node-ansi-logger';
@@ -15,8 +15,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     const weather = new MatterbridgeDevice(DeviceTypes.TEMPERATURE_SENSOR);
     weather.createDefaultIdentifyClusterServer();
-    //weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286475', 4874, 'Eve Systems', 1, 'Eve Weather 20EBS9901', 6650, '3.2.1', 1, '1.1');
-    weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286475', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
+    weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286995', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
     weather.createDefaultTemperatureMeasurementClusterServer(20 * 100);
 
     weather.addDeviceType(DeviceTypes.HUMIDITY_SENSOR);
@@ -25,8 +24,8 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     weather.addDeviceType(DeviceTypes.PRESSURE_SENSOR);
     weather.createDefaultPressureMeasurementClusterServer(950);
 
-    weather.createDefaultPowerSourceRechargableBatteryClusterServer(87);
-    weather.createDefaultPowerSourceConfigurationClusterServer(1);
+    weather.createDefaultPowerSourceReplaceableBatteryClusterServer(87, PowerSource.BatChargeLevel.Ok, 1500, 'CR2450', 1);
+    //weather.createDefaultPowerSourceConfigurationClusterServer(1);
 
     // Add the EveHistory cluster to the device as last cluster!
     weather.createWeatherEveHistoryClusterServer(history, this.log);
@@ -59,8 +58,16 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
         const humidity = history.getFakeLevel(1, 99, 2);
         const pressure = history.getFakeLevel(700, 1100, 1);
         weather.getClusterServerById(TemperatureMeasurement.Cluster.id)?.setMeasuredValueAttribute(temperature * 100);
+        weather.getClusterServerById(TemperatureMeasurement.Cluster.id)?.setMinMeasuredValueAttribute(minTemperature * 100);
+        weather.getClusterServerById(TemperatureMeasurement.Cluster.id)?.setMaxMeasuredValueAttribute(maxTemperature * 100);
+        weather.getClusterServerById(TemperatureMeasurement.Cluster.id)?.setMeasuredValueAttribute(temperature * 100);
         weather.getClusterServerById(RelativeHumidityMeasurement.Cluster.id)?.setMeasuredValueAttribute(humidity * 100);
         weather.getClusterServerById(PressureMeasurement.Cluster.id)?.setMeasuredValueAttribute(pressure);
+
+        if (pressure < 800) weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN_WIND);
+        else if (pressure < 900) weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN);
+        else if (pressure < 1000) weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.CLOUDS_SUN);
+        else weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
 
         // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!), so we set it in the EveHistory cluster
         weather.getClusterServerById(EveHistory.Cluster.id)?.setLastPressureAttribute(pressure);
@@ -71,6 +78,10 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
       },
       60 * 1000 - 100,
     );
+  }
+
+  override async onConfigure() {
+    this.log.info('onConfigure called');
   }
 
   override async onShutdown(reason?: string) {
