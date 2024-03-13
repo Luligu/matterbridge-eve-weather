@@ -15,7 +15,8 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     const weather = new MatterbridgeDevice(DeviceTypes.TEMPERATURE_SENSOR);
     weather.createDefaultIdentifyClusterServer();
-    weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286475', 4874, 'Eve Systems', 1, 'Eve Weather 20EBS9901', 6650, '3.2.1', 1, '1.1');
+    //weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286475', 4874, 'Eve Systems', 1, 'Eve Weather 20EBS9901', 6650, '3.2.1', 1, '1.1');
+    weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286475', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
     weather.createDefaultTemperatureMeasurementClusterServer(20 * 100);
 
     weather.addDeviceType(DeviceTypes.HUMIDITY_SENSOR);
