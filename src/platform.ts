@@ -70,7 +70,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
         else weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
 
         // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!), so we set it in the EveHistory cluster
-        weather.getClusterServerById(EveHistory.Cluster.id)?.setLastPressureAttribute(pressure);
+        weather.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(pressure);
 
         history.setMaxMinTemperature(maxTemperature, minTemperature);
         history.addEntry({ time: history.now(), temperature, humidity, pressure });
