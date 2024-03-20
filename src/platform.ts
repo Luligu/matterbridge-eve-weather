@@ -89,6 +89,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
   override async onShutdown(reason?: string) {
     this.log.info('onShutdown called with reason:', reason ?? 'none');
+    await this.history?.close();
     clearInterval(this.interval);
   }
 }
