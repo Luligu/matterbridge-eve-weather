@@ -1,7 +1,7 @@
-import { DeviceTypes, EveHistory, PlatformConfig, PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureDisplayUnits, TemperatureMeasurement, WeatherTrend } from 'matterbridge';
+import { Matterbridge, MatterbridgeDevice, MatterbridgeAccessoryPlatform, DeviceTypes, EveHistory, PlatformConfig, PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureDisplayUnits, TemperatureMeasurement, WeatherTrend, powerSource } from 'matterbridge';
 
-import { Matterbridge, MatterbridgeDevice, MatterbridgeAccessoryPlatform, MatterHistory } from 'matterbridge';
-import { AnsiLogger } from 'node-ansi-logger';
+import { MatterHistory } from 'matterbridge/history';
+import { AnsiLogger } from 'matterbridge/logger';
 
 export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
   weather: MatterbridgeDevice | undefined;
@@ -28,11 +28,11 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     this.weather.addDeviceType(DeviceTypes.PRESSURE_SENSOR);
     this.weather.createDefaultPressureMeasurementClusterServer(950);
 
+    this.weather.addDeviceType(powerSource);
     this.weather.createDefaultPowerSourceReplaceableBatteryClusterServer(87, PowerSource.BatChargeLevel.Ok, 1500, 'CR2450', 1);
-    //weather.createDefaultPowerSourceConfigurationClusterServer(1);
 
     // Add the EveHistory cluster to the device as last cluster!
-    this.weather.createWeatherEveHistoryClusterServer(this.history, this.log);
+    this.history.createWeatherEveHistoryClusterServer(this.weather, this.log);
     this.history.autoPilot(this.weather);
 
     await this.registerDevice(this.weather);
