@@ -19,4 +19,3 @@ It create a virtual climate sensor device with pressure, temperature (min and ma
 ### Matterbridge
 
 See the guidelines on [Matterbridge](https://github.com/Luligu/matterbridge/blob/main/README.md) for more information.
-
