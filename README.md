@@ -10,9 +10,9 @@
 
 ---
 
-This plugin shows how to use the Matter history and how to create passive device in matter.js.
+This plugin shows how to use the Matter history and how to create a passive device in matter.js.
 
-It create a climate sensor device with pressure temperature (min and max) and humidity that continuously changes state.
+It create a virtual climate sensor device with pressure temperature (min and max) and humidity that continuously changes state.
 
 ## Prerequisites
 
