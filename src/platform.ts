@@ -1,5 +1,4 @@
 import { Matterbridge, MatterbridgeDevice, MatterbridgeAccessoryPlatform, DeviceTypes, EveHistory, PlatformConfig, PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureDisplayUnits, TemperatureMeasurement, WeatherTrend, powerSource } from 'matterbridge';
-
 import { MatterHistory } from 'matterbridge/history';
 import { AnsiLogger } from 'matterbridge/logger';
 
