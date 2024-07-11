@@ -3,17 +3,14 @@ import {
   MatterbridgeDevice,
   MatterbridgeAccessoryPlatform,
   DeviceTypes,
-  EveHistory,
   PlatformConfig,
   PowerSource,
   PressureMeasurement,
   RelativeHumidityMeasurement,
-  TemperatureDisplayUnits,
   TemperatureMeasurement,
-  WeatherTrend,
   powerSource,
 } from 'matterbridge';
-import { MatterHistory } from 'matterbridge/history';
+import { WeatherTrend, TemperatureDisplayUnits, EveHistory, MatterHistory } from 'matterbridge/history';
 import { AnsiLogger } from 'matterbridge/logger';
 
 export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
@@ -23,6 +20,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
+    this.log.info('Initializing platform:', this.config.name);
   }
 
   override async onStart(reason?: string) {
