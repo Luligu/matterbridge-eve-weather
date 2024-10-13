@@ -10,7 +10,7 @@ import {
   TemperatureMeasurement,
   powerSource,
 } from 'matterbridge';
-import { WeatherTrend, TemperatureDisplayUnits, EveHistory, MatterHistory } from 'matterbridge/history';
+import { WeatherTrend, TemperatureDisplayUnits, EveHistory, MatterHistory } from 'matter-history';
 import { AnsiLogger } from 'matterbridge/logger';
 
 export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
