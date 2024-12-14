@@ -15,7 +15,7 @@ describe('initializePlugin', () => {
       matterbridgeDirectory: '',
       matterbridgePluginDirectory: 'temp',
       systemInformation: { ipv4Address: undefined },
-      matterbridgeVersion: '1.6.0',
+      matterbridgeVersion: '1.6.6',
       removeAllBridgedDevices: jest.fn(),
     } as unknown as Matterbridge;
     mockLog = { fatal: jest.fn(), error: jest.fn(), warn: jest.fn(), notice: jest.fn(), info: jest.fn(), debug: jest.fn() } as unknown as AnsiLogger;
@@ -29,7 +29,6 @@ describe('initializePlugin', () => {
 
   it('should return an instance of TestPlatform', () => {
     const result = initializePlugin(mockMatterbridge, mockLog, mockConfig);
-
     expect(result).toBeInstanceOf(EveWeatherPlatform);
   });
 });
