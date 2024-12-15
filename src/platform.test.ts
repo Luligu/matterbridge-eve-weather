@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prefer-const */
+
 import { ClusterServerObj, Identify, Matterbridge, PlatformConfig } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
 import { EveWeatherPlatform } from './platform';
 import { jest } from '@jest/globals';
 
 describe('TestPlatform', () => {
-  let mockMatterbridge: Matterbridge;
-  let mockLog: AnsiLogger;
-  let mockConfig: PlatformConfig;
   let testPlatform: EveWeatherPlatform;
 
   async function invokeCommands(cluster: ClusterServerObj, data?: Record<string, boolean | number | bigint | string | object | null | undefined>): Promise<void> {
@@ -26,16 +23,37 @@ describe('TestPlatform', () => {
     }
   }
 
-  mockMatterbridge = {
+  const mockMatterbridge = {
     addBridgedDevice: jest.fn(),
     matterbridgeDirectory: '',
     matterbridgePluginDirectory: 'temp',
     systemInformation: { ipv4Address: undefined },
-    matterbridgeVersion: '1.6.0',
+    matterbridgeVersion: '1.6.6',
     removeAllBridgedDevices: jest.fn(),
   } as unknown as Matterbridge;
-  mockLog = { fatal: jest.fn(), error: jest.fn(), warn: jest.fn(), notice: jest.fn(), info: jest.fn(), debug: jest.fn() } as unknown as AnsiLogger;
-  mockConfig = {
+
+  const mockLog = {
+    fatal: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.fatal', message, parameters);
+    }),
+    error: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.error', message, parameters);
+    }),
+    warn: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.warn', message, parameters);
+    }),
+    notice: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.notice', message, parameters);
+    }),
+    info: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.info', message, parameters);
+    }),
+    debug: jest.fn((message: string, ...parameters: any[]) => {
+      // console.error('mockLog.debug', message, parameters);
+    }),
+  } as unknown as AnsiLogger;
+
+  const mockConfig = {
     'name': 'matterbridge-eve-weather',
     'type': 'AccessoryPlatform',
     'unregisterOnShutdown': false,
@@ -76,7 +94,7 @@ describe('TestPlatform', () => {
 
     for (let i = 0; i < 100; i++) jest.advanceTimersByTime(61 * 1000);
 
-    // expect(mockLog.info).toHaveBeenCalledWith(expect.stringContaining('Set temperature'));
+    expect(mockLog.info).toHaveBeenCalledTimes(102);
 
     jest.useRealTimers();
   });
