@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ClusterServerObj, Identify, Matterbridge, PlatformConfig } from 'matterbridge';
+import { Identify, Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
 import { EveWeatherPlatform } from './platform';
 import { jest } from '@jest/globals';
@@ -9,49 +9,57 @@ import { jest } from '@jest/globals';
 describe('TestPlatform', () => {
   let testPlatform: EveWeatherPlatform;
 
-  async function invokeCommands(cluster: ClusterServerObj, data?: Record<string, boolean | number | bigint | string | object | null | undefined>): Promise<void> {
-    const commands = (cluster as any).commands as object;
-    for (const [key, value] of Object.entries(commands)) {
-      if (typeof value.handler === 'function') await value.handler(data ?? {});
-    }
-  }
-
-  async function invokeCommand(cluster: ClusterServerObj, command: string, data?: Record<string, boolean | number | bigint | string | object | null | undefined>): Promise<void> {
-    const commands = (cluster as any).commands as object;
-    for (const [key, value] of Object.entries(commands)) {
-      if (key === command && typeof value.handler === 'function') await value.handler(data ?? {});
-    }
-  }
-
-  const mockMatterbridge = {
-    addBridgedDevice: jest.fn(),
-    matterbridgeDirectory: '',
-    matterbridgePluginDirectory: 'temp',
-    systemInformation: { ipv4Address: undefined },
-    matterbridgeVersion: '1.6.6',
-    removeAllBridgedDevices: jest.fn(),
-  } as unknown as Matterbridge;
+  // Spy on and mock AnsiLogger.log
+  const loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {
+    //
+  });
 
   const mockLog = {
     fatal: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.fatal', message, parameters);
+      // console.log('mockLog.fatal', message, parameters);
     }),
     error: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.error', message, parameters);
+      // console.log('mockLog.error', message, parameters);
     }),
     warn: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.warn', message, parameters);
+      // console.log('mockLog.warn', message, parameters);
     }),
     notice: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.notice', message, parameters);
+      // console.log('mockLog.notice', message, parameters);
     }),
     info: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.info', message, parameters);
+      // console.log('mockLog.info', message, parameters);
     }),
     debug: jest.fn((message: string, ...parameters: any[]) => {
-      // console.error('mockLog.debug', message, parameters);
+      // console.log('mockLog.debug', message, parameters);
     }),
   } as unknown as AnsiLogger;
+
+  const mockMatterbridge = {
+    matterbridgeDirectory: './jest/matterbridge',
+    matterbridgePluginDirectory: './jest/plugins',
+    systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
+    matterbridgeVersion: '2.1.0',
+    edge: true,
+    log: mockLog,
+    getDevices: jest.fn(() => {
+      // console.log('getDevices called');
+      return [];
+    }),
+    getPlugins: jest.fn(() => {
+      // console.log('getDevices called');
+      return [];
+    }),
+    addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
+      // console.log('addBridgedEndpoint called');
+    }),
+    removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {
+      // console.log('removeBridgedEndpoint called');
+    }),
+    removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {
+      // console.log('removeAllBridgedEndpoints called');
+    }),
+  } as unknown as Matterbridge;
 
   const mockConfig = {
     'name': 'matterbridge-eve-weather',
@@ -67,7 +75,7 @@ describe('TestPlatform', () => {
   it('should not initialize platform with wrong version', () => {
     mockMatterbridge.matterbridgeVersion = '1.5.0';
     expect(() => (testPlatform = new EveWeatherPlatform(mockMatterbridge, mockLog, mockConfig))).toThrow();
-    mockMatterbridge.matterbridgeVersion = '1.6.6';
+    mockMatterbridge.matterbridgeVersion = '2.1.0';
   });
 
   it('should initialize platform with config name', () => {
@@ -81,30 +89,35 @@ describe('TestPlatform', () => {
     await testPlatform.onStart('Test reason');
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
     expect(testPlatform.weather).toBeDefined();
-    expect(testPlatform.weather?.getAllClusterServers()).toHaveLength(9);
+    if (!testPlatform.weather) return;
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
   });
 
   it('should call onConfigure', async () => {
+    expect(testPlatform.weather).toBeDefined();
+    if (!testPlatform.weather) return;
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
+
     jest.useFakeTimers();
 
     await testPlatform.onConfigure();
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
-    expect(testPlatform.weather).toBeDefined();
-    expect(testPlatform.weather?.getAllClusterServers()).toHaveLength(9);
 
     for (let i = 0; i < 100; i++) jest.advanceTimersByTime(61 * 1000);
 
-    expect(mockLog.info).toHaveBeenCalledTimes(102);
+    expect(mockLog.info).toHaveBeenCalledTimes(1);
+    expect(mockLog.error).toHaveBeenCalledTimes(0);
 
     jest.useRealTimers();
   });
 
   it('should execute the commandHandlers', async () => {
     expect(testPlatform.weather).toBeDefined();
-    expect(testPlatform.weather?.getAllClusterServers()).toHaveLength(9);
-    const identify = testPlatform.weather?.getClusterServerById(Identify.Cluster.id);
-    expect(identify).toBeDefined();
-    await invokeCommands(identify as ClusterServerObj);
+    if (!testPlatform.weather) return;
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
+
+    await testPlatform.weather.executeCommandHandler('identify', { identifyTime: 5 });
+    await testPlatform.weather.executeCommandHandler('triggerEffect', { effectIdentifier: Identify.EffectIdentifier.Blink, effectVariant: Identify.EffectVariant.Default });
   });
 
   it('should call onShutdown with reason', async () => {

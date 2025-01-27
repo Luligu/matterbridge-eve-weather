@@ -1,6 +1,5 @@
 import {
   Matterbridge,
-  MatterbridgeDevice,
   MatterbridgeAccessoryPlatform,
   PlatformConfig,
   PowerSource,
@@ -8,39 +7,29 @@ import {
   RelativeHumidityMeasurement,
   TemperatureMeasurement,
   powerSource,
-  DeviceTypeDefinition,
-  AtLeastOne,
-  EndpointOptions,
   MatterbridgeEndpoint,
   temperatureSensor,
   humiditySensor,
   pressureSensor,
 } from 'matterbridge';
-import { WeatherTrend, TemperatureDisplayUnits, EveHistory, MatterHistory } from 'matter-history';
+import { MatterHistory } from 'matter-history';
 import { AnsiLogger } from 'matterbridge/logger';
 
 export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
-  weather: MatterbridgeDevice | undefined;
+  weather: MatterbridgeEndpoint | undefined;
   history: MatterHistory | undefined;
   interval: NodeJS.Timeout | undefined;
 
   minTemperature = 0;
   maxTemperature = 0;
 
-  createMutableDevice(definition: DeviceTypeDefinition | AtLeastOne<DeviceTypeDefinition>, options: EndpointOptions = {}, debug = false): MatterbridgeDevice {
-    let device: MatterbridgeDevice;
-    if (this.matterbridge.edge === true) device = new MatterbridgeEndpoint(definition, options, debug) as unknown as MatterbridgeDevice;
-    else device = new MatterbridgeDevice(definition, options, debug);
-    return device;
-  }
-
   constructor(matterbridge: Matterbridge, log: AnsiLogger, config: PlatformConfig) {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('1.6.6')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('2.1.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "1.6.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
+        `This plugin requires Matterbridge version >= "2.1.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
       );
     }
 
@@ -50,9 +39,9 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
   override async onStart(reason?: string) {
     this.log.info('onStart called with reason:', reason ?? 'none');
 
-    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory, edge: this.matterbridge.edge });
+    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory });
 
-    this.weather = this.createMutableDevice([temperatureSensor, humiditySensor, pressureSensor, powerSource], { uniqueStorageKey: 'EveWeather' }, this.config.debug as boolean);
+    this.weather = new MatterbridgeEndpoint([temperatureSensor, humiditySensor, pressureSensor, powerSource], { uniqueStorageKey: 'Eve weather' }, this.config.debug as boolean);
     this.weather.createDefaultIdentifyClusterServer();
     this.weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286995', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
     this.weather.createDefaultTemperatureMeasurementClusterServer(20 * 100);
@@ -80,12 +69,12 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
   override async onConfigure() {
     this.log.info('onConfigure called');
 
-    if (!this.matterbridge.edge) {
-      this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setElevationAttribute(250); // Elevation in mt
-      this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
-      this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setTemperatureDisplayUnitsAttribute(TemperatureDisplayUnits.CELSIUS);
-      this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(950);
-    }
+    /*
+    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setElevationAttribute(250); // Elevation in mt
+    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
+    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setTemperatureDisplayUnitsAttribute(TemperatureDisplayUnits.CELSIUS);
+    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(950);
+    */
 
     this.interval = setInterval(
       async () => {
@@ -103,15 +92,15 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
         await this.weather.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', humidity * 100, this.log);
         await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
 
-        if (!this.matterbridge.edge) {
-          this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
-          if (pressure < 800) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN_WIND);
-          else if (pressure < 900) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN);
-          else if (pressure < 1000) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.CLOUDS_SUN);
+        /*
+        this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
+        if (pressure < 800) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN_WIND);
+        else if (pressure < 900) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN);
+        else if (pressure < 1000) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.CLOUDS_SUN);
 
-          // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!), so we set it in the EveHistory cluster
-          this.weather.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(pressure);
-        }
+        // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!), so we set it in the EveHistory cluster
+        this.weather.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(pressure);
+        */
 
         this.history.setMaxMinTemperature(this.maxTemperature, this.minTemperature);
         this.history.addEntry({ time: this.history.now(), temperature, humidity, pressure });
