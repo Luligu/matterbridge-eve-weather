@@ -90,13 +90,13 @@ describe('TestPlatform', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason:', 'Test reason');
     expect(testPlatform.weather).toBeDefined();
     if (!testPlatform.weather) return;
-    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(8); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource", "eveHistory"]
   });
 
   it('should call onConfigure', async () => {
     expect(testPlatform.weather).toBeDefined();
     if (!testPlatform.weather) return;
-    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(8); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource", "eveHistory"]
 
     jest.useFakeTimers();
 
@@ -114,7 +114,7 @@ describe('TestPlatform', () => {
   it('should execute the commandHandlers', async () => {
     expect(testPlatform.weather).toBeDefined();
     if (!testPlatform.weather) return;
-    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(7); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource"]
+    expect(Object.keys(testPlatform.weather.behaviors.supported)).toHaveLength(8); // ["descriptor", "matterbridge", "identify", "temperatureMeasurement", "relativeHumidityMeasurement", "pressureMeasurement", "powerSource", "eveHistory"]
 
     await testPlatform.weather.executeCommandHandler('identify', { identifyTime: 5 });
     await testPlatform.weather.executeCommandHandler('triggerEffect', { effectIdentifier: Identify.EffectIdentifier.Blink, effectVariant: Identify.EffectVariant.Default });
