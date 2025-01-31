@@ -1,17 +1,5 @@
-import {
-  Matterbridge,
-  MatterbridgeAccessoryPlatform,
-  PlatformConfig,
-  PowerSource,
-  PressureMeasurement,
-  RelativeHumidityMeasurement,
-  TemperatureMeasurement,
-  powerSource,
-  MatterbridgeEndpoint,
-  temperatureSensor,
-  humiditySensor,
-  pressureSensor,
-} from 'matterbridge';
+import { Matterbridge, MatterbridgeAccessoryPlatform, PlatformConfig, powerSource, MatterbridgeEndpoint, temperatureSensor, humiditySensor, pressureSensor } from 'matterbridge';
+import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
 import { MatterHistory } from 'matter-history';
 import { AnsiLogger } from 'matterbridge/logger';
 
