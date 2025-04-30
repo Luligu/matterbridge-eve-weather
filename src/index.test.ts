@@ -32,7 +32,7 @@ describe('initializePlugin', () => {
     matterbridgeDirectory: './jest/matterbridge',
     matterbridgePluginDirectory: './jest/plugins',
     systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
-    matterbridgeVersion: '2.2.6',
+    matterbridgeVersion: '3.0.0',
     edge: true,
     log: mockLog,
     getDevices: jest.fn(() => {
@@ -61,8 +61,10 @@ describe('initializePlugin', () => {
     'debug': false,
   } as PlatformConfig;
 
-  it('should return an instance of TestPlatform', () => {
+  it('should return an instance of TestPlatform', async () => {
     const result = initializePlugin(mockMatterbridge, mockLog, mockConfig);
     expect(result).toBeInstanceOf(EveWeatherPlatform);
+    await result.onShutdown('Test reason');
+    expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason:', 'Test reason');
   });
 });

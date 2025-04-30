@@ -1,6 +1,6 @@
 import { Matterbridge, MatterbridgeAccessoryPlatform, PlatformConfig, powerSource, MatterbridgeEndpoint, temperatureSensor, humiditySensor, pressureSensor } from 'matterbridge';
 import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
-import { MatterHistory } from 'matter-history';
+import { EveHistory, MatterHistory, TemperatureDisplayUnits, WeatherTrend } from 'matter-history';
 import { AnsiLogger } from 'matterbridge/logger';
 
 export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
@@ -15,9 +15,9 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('2.2.6')) {
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "2.2.6". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
+        `This plugin requires Matterbridge version >= "3.0.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
       );
     }
 
@@ -57,12 +57,10 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
   override async onConfigure() {
     this.log.info('onConfigure called');
 
-    /*
-    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setElevationAttribute(250); // Elevation in mt
-    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
-    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setTemperatureDisplayUnitsAttribute(TemperatureDisplayUnits.CELSIUS);
-    this.weather?.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(950);
-    */
+    await this.weather?.setAttribute(EveHistory.Cluster.id, 'elevation', 250); // Elevation in mt
+    await this.weather?.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
+    await this.weather?.setAttribute(EveHistory.Cluster.id, 'temperatureDisplayUnits', TemperatureDisplayUnits.CELSIUS);
+    await this.weather?.setAttribute(EveHistory.Cluster.id, 'airPressure', 950);
 
     this.interval = setInterval(
       async () => {
@@ -74,21 +72,17 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
         this.maxTemperature = Math.max(this.maxTemperature, temperature);
         const humidity = this.history.getFakeLevel(1, 99, 2);
         const pressure = this.history.getFakeLevel(700, 1100, 1);
-        await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'minMeasuredValue', this.minTemperature * 100, this.log);
-        await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'maxMeasuredValue', this.maxTemperature * 100, this.log);
         await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature * 100, this.log);
         await this.weather.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', humidity * 100, this.log);
         await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
 
-        /*
-        this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.SUN);
-        if (pressure < 800) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN_WIND);
-        else if (pressure < 900) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.RAIN);
-        else if (pressure < 1000) this.weather.getClusterServerById(EveHistory.Cluster.id)?.setWeatherTrendAttribute(WeatherTrend.CLOUDS_SUN);
+        this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
+        if (pressure < 800) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN_WIND);
+        else if (pressure < 900) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN);
+        else if (pressure < 1000) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
 
-        // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!), so we set it in the EveHistory cluster
-        this.weather.getClusterServerById(EveHistory.Cluster.id)?.setAirPressureAttribute(pressure);
-        */
+        // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!!!), so we set it in the EveHistory cluster
+        await this.weather.setAttribute(EveHistory.Cluster.id, 'airPressure', pressure);
 
         this.history.setMaxMinTemperature(this.maxTemperature, this.minTemperature);
         this.history.addEntry({ time: this.history.now(), temperature, humidity, pressure });
