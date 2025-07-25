@@ -29,7 +29,11 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory });
 
-    this.weather = new MatterbridgeEndpoint([temperatureSensor, humiditySensor, pressureSensor, powerSource], { uniqueStorageKey: 'Eve weather' }, this.config.debug as boolean);
+    this.weather = new MatterbridgeEndpoint(
+      [temperatureSensor, humiditySensor, pressureSensor, powerSource],
+      { uniqueStorageKey: 'Eve weather', mode: 'server' },
+      this.config.debug as boolean,
+    );
     this.weather.createDefaultIdentifyClusterServer();
     this.weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286995', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
     this.weather.createDefaultTemperatureMeasurementClusterServer(20 * 100);
