@@ -27,11 +27,11 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
   override async onStart(reason?: string) {
     this.log.info('onStart called with reason:', reason ?? 'none');
 
-    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory });
+    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory, enableDebug: this.config.debug as boolean });
 
     this.weather = new MatterbridgeEndpoint(
       [temperatureSensor, humiditySensor, pressureSensor, powerSource],
-      { uniqueStorageKey: 'Eve weather', mode: 'server' },
+      { uniqueStorageKey: 'Eve weather', mode: this.matterbridge.bridgeMode === 'bridge' ? 'server' : undefined },
       this.config.debug as boolean,
     );
     this.weather.createDefaultIdentifyClusterServer();
