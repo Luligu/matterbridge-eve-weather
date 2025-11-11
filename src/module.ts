@@ -76,8 +76,8 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     this.weather = new MatterbridgeEndpoint(
       [temperatureSensor, humiditySensor, pressureSensor, powerSource],
-      { uniqueStorageKey: 'Eve weather', mode: this.matterbridge.bridgeMode === 'bridge' ? 'server' : undefined },
-      this.config.debug as boolean,
+      { id: 'Eve weather', mode: this.matterbridge.bridgeMode === 'bridge' ? 'server' : undefined },
+      this.config.debug,
     );
     this.weather.createDefaultIdentifyClusterServer();
     this.weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286995', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
