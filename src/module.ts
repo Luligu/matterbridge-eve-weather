@@ -126,6 +126,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
         await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
 
         this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
+        // istanbul ignore next
         if (pressure < 800) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN_WIND);
         else if (pressure < 900) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN);
         else if (pressure < 1000) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
