@@ -88,9 +88,10 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     // Add the EveHistory cluster to the device as last cluster!
     this.history.createWeatherEveHistoryClusterServer(this.weather, this.log);
-    this.history.autoPilot(this.weather);
 
     await this.registerDevice(this.weather);
+
+    this.history.autoPilot(this.weather);
 
     this.weather.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
       this.log.warn(`Command identify called identifyTime:${identifyTime}`);
