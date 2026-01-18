@@ -80,7 +80,18 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
       this.config.debug,
     );
     this.weather.createDefaultIdentifyClusterServer();
-    this.weather.createDefaultBasicInformationClusterServer('Eve weather', '0x84286995', 4874, 'Eve Systems', 0x57, 'Eve Weather 20EBS9901', 2996, '2.1.3', 1, '1.1');
+    this.weather.createDefaultBasicInformationClusterServer(
+      'Eve weather' + (this.matterbridge.bridgeMode === 'bridge' ? ' server' : ''),
+      '0x84286995',
+      4874,
+      'Eve Systems',
+      0x57,
+      'Eve Weather 20EBS9901',
+      2996,
+      '2.1.3',
+      1,
+      '1.1',
+    );
     this.weather.createDefaultTemperatureMeasurementClusterServer(20 * 100);
     this.weather.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
     this.weather.createDefaultPressureMeasurementClusterServer(950);
