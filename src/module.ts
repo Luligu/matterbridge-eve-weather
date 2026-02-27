@@ -21,19 +21,19 @@
  * limitations under the License.
  */
 
-import {
-  MatterbridgeAccessoryPlatform,
-  PlatformConfig,
-  powerSource,
-  MatterbridgeEndpoint,
-  temperatureSensor,
-  humiditySensor,
-  pressureSensor,
-  PlatformMatterbridge,
-} from 'matterbridge';
-import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
 import { EveHistory, MatterHistory, TemperatureDisplayUnits, WeatherTrend } from 'matter-history';
+import {
+  humiditySensor,
+  MatterbridgeAccessoryPlatform,
+  MatterbridgeEndpoint,
+  PlatformConfig,
+  PlatformMatterbridge,
+  powerSource,
+  pressureSensor,
+  temperatureSensor,
+} from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
+import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
 
 /**
  * This is the standard interface for MatterBridge plugins.
