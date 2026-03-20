@@ -20,7 +20,7 @@ import {
 import { LogLevel } from 'matterbridge/logger';
 import { Identify } from 'matterbridge/matter/clusters';
 
-import initializePlugin, { EveWeatherPlatform } from './module.ts';
+import initializePlugin, { EveWeatherPlatform } from './module.js';
 
 // Setup the test environment
 setupTest(NAME, false);
@@ -109,8 +109,14 @@ describe('TestPlatform', () => {
     expect(testPlatform.weather).toBeDefined();
     if (!testPlatform.weather) return;
 
-    await testPlatform.weather.executeCommandHandler('identify', { identifyTime: 5 });
-    await testPlatform.weather.executeCommandHandler('triggerEffect', { effectIdentifier: Identify.EffectIdentifier.Blink, effectVariant: Identify.EffectVariant.Default });
+    await testPlatform.weather.executeCommandHandler('identify', { identifyTime: 5 }, 'identify', {} as any, testPlatform.weather);
+    await testPlatform.weather.executeCommandHandler(
+      'triggerEffect',
+      { effectIdentifier: Identify.EffectIdentifier.Blink, effectVariant: Identify.EffectVariant.Default },
+      'identify',
+      {} as any,
+      testPlatform.weather,
+    );
   });
 
   it('should call onShutdown with reason', async () => {
