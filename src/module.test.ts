@@ -48,7 +48,7 @@ describe('TestPlatform', () => {
   afterAll(async () => {
     // Destroy Matterbridge environment
     await stopMatterbridgeEnvironment(MATTER_CREATE_ONLY);
-    await destroyMatterbridgeEnvironment(undefined, undefined, !MATTER_CREATE_ONLY);
+    await destroyMatterbridgeEnvironment(undefined, undefined, true, true);
     // Restore all mocks
     jest.restoreAllMocks();
   });

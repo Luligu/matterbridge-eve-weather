@@ -34,6 +34,7 @@ import {
 } from 'matterbridge';
 import { AnsiLogger } from 'matterbridge/logger';
 import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
+import { fireAndForget } from 'matterbridge/utils';
 
 /**
  * This is the standard interface for MatterBridge plugins.
@@ -104,12 +105,12 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
 
     this.history.autoPilot(this.weather);
 
-    this.weather.addCommandHandler('identify', async ({ request: { identifyTime } }) => {
+    this.weather.addCommandHandler('identify', ({ request: { identifyTime } }) => {
       this.log.warn(`Command identify called identifyTime:${identifyTime}`);
       this.history?.logHistory(false);
     });
 
-    this.weather.addCommandHandler('triggerEffect', async ({ request: { effectIdentifier, effectVariant } }) => {
+    this.weather.addCommandHandler('triggerEffect', ({ request: { effectIdentifier, effectVariant } }) => {
       this.log.warn(`Command triggerEffect called effect ${effectIdentifier} variant ${effectVariant}`);
       this.history?.logHistory(false);
     });
@@ -125,31 +126,37 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     await this.weather?.setAttribute(EveHistory.Cluster.id, 'airPressure', 950);
 
     this.interval = setInterval(
-      async () => {
-        if (!this.weather || !this.history) return;
-        const temperature = this.history.getFakeLevel(10, 30, 2);
-        if (this.minTemperature === 0) this.minTemperature = temperature;
-        if (this.maxTemperature === 0) this.maxTemperature = temperature;
-        this.minTemperature = Math.min(this.minTemperature, temperature);
-        this.maxTemperature = Math.max(this.maxTemperature, temperature);
-        const humidity = this.history.getFakeLevel(1, 99, 2);
-        const pressure = this.history.getFakeLevel(700, 1100, 1);
-        await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature * 100, this.log);
-        await this.weather.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', humidity * 100, this.log);
-        await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
+      () => {
+        fireAndForget(
+          (async () => {
+            if (!this.weather || !this.history) return;
+            const temperature = this.history.getFakeLevel(10, 30, 2);
+            if (this.minTemperature === 0) this.minTemperature = temperature;
+            if (this.maxTemperature === 0) this.maxTemperature = temperature;
+            this.minTemperature = Math.min(this.minTemperature, temperature);
+            this.maxTemperature = Math.max(this.maxTemperature, temperature);
+            const humidity = this.history.getFakeLevel(1, 99, 2);
+            const pressure = this.history.getFakeLevel(700, 1100, 1);
+            await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature * 100, this.log);
+            await this.weather.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', humidity * 100, this.log);
+            await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
 
-        this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
-        // istanbul ignore next
-        if (pressure < 800) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN_WIND);
-        else if (pressure < 900) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN);
-        else if (pressure < 1000) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
+            await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
+            // istanbul ignore next
+            if (pressure < 800) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN_WIND);
+            else if (pressure < 900) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN);
+            else if (pressure < 1000) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
 
-        // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!!!), so we set it in the EveHistory cluster
-        await this.weather.setAttribute(EveHistory.Cluster.id, 'airPressure', pressure);
+            // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!!!), so we set it in the EveHistory cluster
+            await this.weather.setAttribute(EveHistory.Cluster.id, 'airPressure', pressure);
 
-        this.history.setMaxMinTemperature(this.maxTemperature, this.minTemperature);
-        this.history.addEntry({ time: this.history.now(), temperature, humidity, pressure });
-        this.log.info(`Set temperature: ${temperature} (min: ${this.minTemperature} max: ${this.maxTemperature}) humidity: ${humidity} pressure: ${pressure}`);
+            this.history.setMaxMinTemperature(this.maxTemperature, this.minTemperature);
+            this.history.addEntry({ time: this.history.now(), temperature, humidity, pressure });
+            this.log.info(`Set temperature: ${temperature} (min: ${this.minTemperature} max: ${this.maxTemperature}) humidity: ${humidity} pressure: ${pressure}`);
+          })(),
+          this.log,
+          'setInterval',
+        );
       },
       60 * 1000 - 100,
     );
