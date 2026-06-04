@@ -129,6 +129,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
       () => {
         fireAndForget(
           (async () => {
+            // istanbul ignore next - This is just a precaution, in normal conditions this should never happen
             if (!this.weather || !this.history) return;
             const temperature = this.history.getFakeLevel(10, 30, 2);
             if (this.minTemperature === 0) this.minTemperature = temperature;
