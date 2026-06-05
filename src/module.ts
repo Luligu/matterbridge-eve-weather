@@ -97,6 +97,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     this.weather.createDefaultRelativeHumidityMeasurementClusterServer(50 * 100);
     this.weather.createDefaultPressureMeasurementClusterServer(950);
     this.weather.createDefaultPowerSourceReplaceableBatteryClusterServer(64, PowerSource.BatChargeLevel.Ok, 3000, 'CR2450', 1);
+    this.weather.addRequiredClusters();
 
     // Add the EveHistory cluster to the device as last cluster!
     this.history.createWeatherEveHistoryClusterServer(this.weather, this.log);
