@@ -61,9 +61,10 @@ describe('TestPlatform', () => {
   });
 
   it('should not initialize platform with wrong version', () => {
+    const savedVersion = matterbridge.matterbridgeVersion;
     matterbridge.matterbridgeVersion = '1.5.0';
     expect(() => (testPlatform = new EveWeatherPlatform(matterbridge, log, config))).toThrow();
-    matterbridge.matterbridgeVersion = '3.5.0';
+    matterbridge.matterbridgeVersion = savedVersion;
   });
 
   it('should initialize platform with config name', () => {
