@@ -26,13 +26,13 @@ import {
   humiditySensor,
   MatterbridgeAccessoryPlatform,
   MatterbridgeEndpoint,
-  PlatformConfig,
-  PlatformMatterbridge,
+  type PlatformConfig,
+  type PlatformMatterbridge,
   powerSource,
   pressureSensor,
   temperatureSensor,
 } from 'matterbridge';
-import { AnsiLogger } from 'matterbridge/logger';
+import type { AnsiLogger } from 'matterbridge/logger';
 import { PowerSource, PressureMeasurement, RelativeHumidityMeasurement, TemperatureMeasurement } from 'matterbridge/matter/clusters';
 import { fireAndForget } from 'matterbridge/utils';
 
@@ -61,19 +61,19 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     super(matterbridge, log, config);
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.8.0')) {
+    if (typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.9.0')) {
       throw new Error(
-        `This plugin requires Matterbridge version >= "3.8.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
+        `This plugin requires Matterbridge version >= "3.9.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
       );
     }
 
     this.log.info('Initializing platform:', this.config.name);
   }
 
-  override async onStart(reason?: string) {
+  override async onStart(reason?: string): Promise<void> {
     this.log.info('onStart called with reason:', reason ?? 'none');
 
-    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory, enableDebug: this.config.debug as boolean });
+    this.history = new MatterHistory(this.log, 'Eve weather', { filePath: this.matterbridge.matterbridgeDirectory, enableDebug: this.config.debug });
 
     this.weather = new MatterbridgeEndpoint(
       [temperatureSensor, humiditySensor, pressureSensor, powerSource],
@@ -117,19 +117,19 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     });
   }
 
-  override async onConfigure() {
+  override async onConfigure(): Promise<void> {
     await super.onConfigure();
     this.log.info('onConfigure called');
 
-    await this.weather?.setAttribute(EveHistory.Cluster.id, 'elevation', 250); // Elevation in mt
-    await this.weather?.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
-    await this.weather?.setAttribute(EveHistory.Cluster.id, 'temperatureDisplayUnits', TemperatureDisplayUnits.CELSIUS);
-    await this.weather?.setAttribute(EveHistory.Cluster.id, 'airPressure', 950);
+    await this.weather?.setAttribute(EveHistory, 'elevation', 250); // Elevation in mt
+    await this.weather?.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.SUN);
+    await this.weather?.setAttribute(EveHistory, 'temperatureDisplayUnits', TemperatureDisplayUnits.CELSIUS);
+    await this.weather?.setAttribute(EveHistory, 'airPressure', 950);
 
     this.interval = setInterval(
       () => {
         fireAndForget(
-          (async () => {
+          (async (): Promise<void> => {
             // istanbul ignore next - This is just a precaution, in normal conditions this should never happen
             if (!this.weather || !this.history) return;
             const temperature = this.history.getFakeLevel(10, 30, 2);
@@ -139,18 +139,18 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
             this.maxTemperature = Math.max(this.maxTemperature, temperature);
             const humidity = this.history.getFakeLevel(1, 99, 2);
             const pressure = this.history.getFakeLevel(700, 1100, 1);
-            await this.weather.setAttribute(TemperatureMeasurement.Cluster.id, 'measuredValue', temperature * 100, this.log);
-            await this.weather.setAttribute(RelativeHumidityMeasurement.Cluster.id, 'measuredValue', humidity * 100, this.log);
-            await this.weather.setAttribute(PressureMeasurement.Cluster.id, 'measuredValue', pressure, this.log);
+            await this.weather.setAttribute(TemperatureMeasurement, 'measuredValue', temperature * 100, this.log);
+            await this.weather.setAttribute(RelativeHumidityMeasurement, 'measuredValue', humidity * 100, this.log);
+            await this.weather.setAttribute(PressureMeasurement, 'measuredValue', pressure, this.log);
 
-            await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.SUN);
+            await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.SUN);
             // istanbul ignore next
-            if (pressure < 800) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN_WIND);
-            else if (pressure < 900) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.RAIN);
-            else if (pressure < 1000) await this.weather.setAttribute(EveHistory.Cluster.id, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
+            if (pressure < 800) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.RAIN_WIND);
+            else if (pressure < 900) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.RAIN);
+            else if (pressure < 1000) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
 
             // The Eve app doesn't read the pressure from the PressureMeasurement cluster (Home app doesn't have it!!!), so we set it in the EveHistory cluster
-            await this.weather.setAttribute(EveHistory.Cluster.id, 'airPressure', pressure);
+            await this.weather.setAttribute(EveHistory, 'airPressure', pressure);
 
             this.history.setMaxMinTemperature(this.maxTemperature, this.minTemperature);
             this.history.addEntry({ time: this.history.now(), temperature, humidity, pressure });
@@ -164,11 +164,11 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
     );
   }
 
-  override async onShutdown(reason?: string) {
+  override async onShutdown(reason?: string): Promise<void> {
     await super.onShutdown(reason);
     this.log.info('onShutdown called with reason:', reason ?? 'none');
     await this.history?.close();
     clearInterval(this.interval);
-    if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
+    if (this.config.unregisterOnShutdown) await this.unregisterAllDevices();
   }
 }
