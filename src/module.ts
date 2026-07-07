@@ -1,7 +1,6 @@
 /**
- * This file contains the class EveWeatherPlatform.
- *
- * @file module.ts
+ * @file src/module.ts
+ * @description This file contains the class EveWeatherPlatform.
  * @author Luca Liguori
  * @version 2.0.0
  * @license Apache-2.0
@@ -130,7 +129,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
       () => {
         fireAndForget(
           (async (): Promise<void> => {
-            // istanbul ignore next - This is just a precaution, in normal conditions this should never happen
+            /* v8 ignore next - This is just a precaution, in normal conditions this should never happen */
             if (!this.weather || !this.history) return;
             const temperature = this.history.getFakeLevel(10, 30, 2);
             if (this.minTemperature === 0) this.minTemperature = temperature;
@@ -144,7 +143,7 @@ export class EveWeatherPlatform extends MatterbridgeAccessoryPlatform {
             await this.weather.setAttribute(PressureMeasurement, 'measuredValue', pressure, this.log);
 
             await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.SUN);
-            // istanbul ignore next
+            /* v8 ignore next */
             if (pressure < 800) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.RAIN_WIND);
             else if (pressure < 900) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.RAIN);
             else if (pressure < 1000) await this.weather.setAttribute(EveHistory, 'weatherTrend', WeatherTrend.CLOUDS_SUN);
