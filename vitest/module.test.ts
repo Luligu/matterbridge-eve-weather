@@ -66,7 +66,7 @@ describe('TestPlatform', () => {
     const result = initializePlugin(matterbridge, log, config);
     expect(result).toBeInstanceOf(EveWeatherPlatform);
     await result.onShutdown('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   });
 
   it('should not initialize platform with wrong version', () => {
@@ -78,12 +78,12 @@ describe('TestPlatform', () => {
   it('should initialize platform with config name', () => {
     testPlatform = new EveWeatherPlatform(matterbridge, log, config);
     addMatterbridge(testPlatform);
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'Initializing platform:', config.name);
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Initializing platform ${config.name}...`);
   });
 
   it('should call onStart with reason', async () => {
     await testPlatform.onStart('Test reason');
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onStart called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Starting platform ${config.name} with reason: Test reason...`);
     expect(testPlatform.weather).toBeDefined();
     if (!testPlatform.weather) return;
     expect(testPlatform.weather.getAllClusterServerNames()).toEqual([
@@ -102,7 +102,7 @@ describe('TestPlatform', () => {
     vi.useFakeTimers();
 
     await testPlatform.onConfigure();
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onConfigure called');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Configuring platform ${config.name}...`);
 
     for (let i = 0; i < 20; i++) {
       await vi.advanceTimersByTimeAsync(61 * 1000);
@@ -132,6 +132,6 @@ describe('TestPlatform', () => {
     await testPlatform.onShutdown('Test reason');
     testPlatform.config.unregisterOnShutdown = true;
     await testPlatform.onShutdown();
-    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, 'onShutdown called with reason:', 'Test reason');
+    expect(loggerLogSpy).toHaveBeenCalledWith(LogLevel.INFO, `Shutting down platform ${config.name} with reason: Test reason...`);
   });
 });
